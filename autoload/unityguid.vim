@@ -12,10 +12,10 @@ set cpo&vim
 
 function! unityguid#gather_candidates(dir, ...) abort " {{{
   let type = a:0 > 0 ? a:1 : ''
-  let candidates = map(filter(s:globpath(a:dir, '**/*.meta'), 'filereadable(v:val)'), '{
-        \ "guid": split(filter(readfile(v:val), "v:val =~# \"^guid:\"")[0], " ")[1],
+  let candidates = filter(map(filter(s:globpath(a:dir, '**/*.meta'), 'filereadable(v:val)'), '{
+        \ "guid": s:read_guid(v:val),
         \ "path": fnamemodify(substitute(v:val, "\\.meta$", "", ""), ":.")
-        \}')
+        \}'), "v:val.guid !=# ''")
   if type ==# 'file'
     return filter(candidates, 'filereadable(v:val.path)')
   elseif type ==# 'dir'
@@ -23,6 +23,12 @@ function! unityguid#gather_candidates(dir, ...) abort " {{{
   else
     return candidates
   endif
+endfunction " }}}
+
+
+function! s:read_guid(filepath) abort " {{{
+  let guidlines = filter(readfile(a:filepath), "v:val =~# \"^guid:\"")
+  return len(guidlines) == 0 ? '' : split(guidlines[0], " ")[1]
 endfunction " }}}
 
 
